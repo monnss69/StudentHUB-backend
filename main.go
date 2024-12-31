@@ -28,27 +28,27 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}))
 
 	// Authentication Routes
-	router.POST("/auth", db.AuthenticateUser)
-	router.POST("/auth/logout", db.LogOutUser)
-
-	// User Routes
 	router.POST("/users", db.CreateUser)
+	router.GET("/users", db.ListUsers) // Supports ?username=query
+	router.GET("/users/:id", db.GetUser)
 	router.DELETE("/users/:id", auth.AuthMiddleware(), db.DeleteUser)
-	router.GET("/users", db.GetAllUser)
-	router.GET("/users/:id", db.GetUserID)
 
-	// Post Routes
-	router.POST("/post", auth.AuthMiddleware(), db.CreatePost)
-	router.DELETE("/post/:post_id", auth.AuthMiddleware(), db.DeletePost)
-	router.GET("/post/:post_id", auth.AuthMiddleware(), db.GetPostID)
-	router.PUT("/post/:post_id", auth.AuthMiddleware(), db.EditPost)
-	router.GET("/:category", auth.AuthMiddleware(), db.GetCategoryPost)
+	// Auth routes
+	router.POST("/login", db.Login)
+	router.POST("/logout", db.Logout)
 
-	// Comment Route
-	router.GET("/comment/:post_id", auth.AuthMiddleware(), db.GetCommentPost)
+	// Post routes
+	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)
+	router.GET("/posts/:id", db.GetPost)
+	router.GET("/posts/category/:category", db.ListPostsByCategory)
+	router.PUT("/posts/:id", auth.AuthMiddleware(), db.UpdatePost)
+	router.DELETE("/posts/:id", auth.AuthMiddleware(), db.DeletePost)
 
-	// Category Route
-	router.GET("/category", db.GetCategory)
+	// Comment routes
+	router.GET("/posts/:id/comments", db.ListPostComments)
+
+	// Category routes
+	router.GET("/categories", db.ListCategories)
 
 	// Serve the request
 	router.ServeHTTP(w, r)
@@ -69,19 +69,27 @@ func main() {
 	}))
 
 	// Same route setup as in Handler
-	router.POST("/auth", db.AuthenticateUser)
-	router.POST("/auth/logout", db.LogOutUser)
 	router.POST("/users", db.CreateUser)
+	router.GET("/users", db.ListUsers) // Supports ?username=query
+	router.GET("/users/:id", db.GetUser)
 	router.DELETE("/users/:id", auth.AuthMiddleware(), db.DeleteUser)
-	router.GET("/users", db.GetAllUser)
-	router.GET("/users/:id", db.GetUserID)
-	router.POST("/post", auth.AuthMiddleware(), db.CreatePost)
-	router.DELETE("/post/:post_id", auth.AuthMiddleware(), db.DeletePost)
-	router.GET("/post/:post_id", auth.AuthMiddleware(), db.GetPostID)
-	router.PUT("/post/:post_id", auth.AuthMiddleware(), db.EditPost)
-	router.GET("/:category", auth.AuthMiddleware(), db.GetCategoryPost)
-	router.GET("/comment/:post_id", auth.AuthMiddleware(), db.GetCommentPost)
-	router.GET("/category", db.GetCategory)
+
+	// Auth routes
+	router.POST("/login", db.Login)
+	router.POST("/logout", db.Logout)
+
+	// Post routes
+	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)
+	router.GET("/posts/:id", db.GetPost)
+	router.GET("/posts/category/:category", db.ListPostsByCategory)
+	router.PUT("/posts/:id", auth.AuthMiddleware(), db.UpdatePost)
+	router.DELETE("/posts/:id", auth.AuthMiddleware(), db.DeletePost)
+
+	// Comment routes
+	router.GET("/posts/:id/comments", db.ListPostComments)
+
+	// Category routes
+	router.GET("/categories", db.ListCategories)
 
 	port := os.Getenv("PORT")
 	if port == "" {

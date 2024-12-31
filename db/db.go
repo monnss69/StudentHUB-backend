@@ -50,7 +50,74 @@ func Initialize() {
 	sqlDB.SetMaxOpenConns(100)
 }
 
-func LogOutUser(c *gin.Context) {
+// User handlers
+func CreateUser(c *gin.Context) {
+	var newUser interfaces.User
+
+	if err := c.BindJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data"})
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.PasswordHash), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error processing password"})
+		return
+	}
+
+	newUser.PasswordHash = string(hashedPassword)
+
+	if err := DB.Create(&newUser).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating user"})
+		return
+	}
+
+	newUser.PasswordHash = "" // Don't send password hash back
+	c.JSON(http.StatusCreated, newUser)
+}
+
+func ListUsers(c *gin.Context) {
+	var users []interfaces.User
+	username := c.Query("username")
+
+	query := DB
+	if username != "" {
+		query = query.Where("username = ?", username)
+	}
+
+	if err := query.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
+func GetUser(c *gin.Context) {
+	id := c.Param("id")
+	var user interfaces.User
+
+	if err := DB.First(&user, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+func DeleteUser(c *gin.Context) {
+	id := c.Param("id")
+
+	result := DB.Delete(&interfaces.User{}, id)
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+func Logout(c *gin.Context) {
 	cookie := &http.Cookie{
 		Name:     "token",
 		Value:    "",
@@ -70,7 +137,7 @@ func LogOutUser(c *gin.Context) {
 	})
 }
 
-func AuthenticateUser(c *gin.Context) {
+func Login(c *gin.Context) {
 	var authUser interfaces.AuthenticateUser
 
 	if err := c.BindJSON(&authUser); err != nil {
@@ -115,126 +182,32 @@ func AuthenticateUser(c *gin.Context) {
 	}
 }
 
-// Create user
-func CreateUser(c *gin.Context) {
-	var newUser interfaces.User
-
-	if err := c.BindJSON(&newUser); err != nil {
-		c.JSON(400, gin.H{"error": "Error binding JSON"})
-		return
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.PasswordHash), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Error hashing password"})
-		return
-	}
-
-	newUser.PasswordHash = string(hashedPassword)
-
-	result := DB.Create(&newUser)
-	if result.Error != nil {
-		c.JSON(500, gin.H{"error": "Error creating user"})
-		return
-	}
-
-	newUser.PasswordHash = ""
-
-	c.JSON(200, newUser)
-}
-
-// Search all users
-func GetAllUser(c *gin.Context) {
-	var users []interfaces.User
-
-	result := DB.Find(&users)
-	if result.Error != nil {
-		c.JSON(500, gin.H{"error": "Error finding users"})
-		return
-	}
-
-	c.JSON(http.StatusOK, users)
-}
-
-// Delete User
-func DeleteUser(c *gin.Context) {
-	id := c.Param("id")
-
-	result := DB.Delete(&interfaces.User{}, id)
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, "Invalid User ID")
-	}
-
-	c.JSON(http.StatusOK, "User Deleted")
-}
-
-// Find users by their id
-func GetUserID(c *gin.Context) {
-	id := c.Param("id")
-	var user interfaces.User
-
-	result := DB.First(&user, "id = ?", id)
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Error finding user"})
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
-}
-
-// Create post
+// Post handlers
 func CreatePost(c *gin.Context) {
-	var newPost interfaces.Post
+	var post interfaces.Post
 
-	err := c.BindJSON(&newPost)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid information"})
+	if err := c.BindJSON(&post); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post data"})
 		return
 	}
 
-	result := DB.Create(&newPost)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error when creating post"})
+	if err := DB.Create(&post).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating post"})
 		return
 	}
 
-	c.JSON(http.StatusOK, newPost)
+	c.JSON(http.StatusCreated, post)
 }
 
-// Get posts based on category
-func GetCategoryPost(c *gin.Context) {
-	category := c.Param("category")
-
-	var categoryRecord interfaces.Category
-	var posts []interfaces.Post
-
-	result := DB.Model(&interfaces.Category{}).Select("id").Where("name = ?", category).First(&categoryRecord)
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
-		return
-	}
-
-	result0 := DB.Find(&posts, "category_id = ?", categoryRecord.ID)
-	if result0.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post with this category not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, posts)
-}
-
-// Get post by ID
-func GetPostID(c *gin.Context) {
-	postID, err := uuid.Parse(c.Param("post_id"))
+func GetPost(c *gin.Context) {
+	postID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
 		return
 	}
 
 	var post interfaces.Post
-
-	result := DB.Model(&interfaces.Post{}).Where("id = ?", postID).First(&post)
-	if result.Error != nil {
+	if err := DB.First(&post, "id = ?", postID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
 	}
@@ -242,75 +215,87 @@ func GetPostID(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
-// Delete post
-func DeletePost(c *gin.Context) {
-	postID, err := uuid.Parse(c.Param("post_id"))
+func ListPostsByCategory(c *gin.Context) {
+	category := c.Param("category")
+
+	var categoryRecord interfaces.Category
+	if err := DB.Where("name = ?", category).First(&categoryRecord).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		return
+	}
+
+	var posts []interfaces.Post
+	if err := DB.Where("category_id = ?", categoryRecord.ID).Find(&posts).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No posts found in this category"})
+		return
+	}
+
+	c.JSON(http.StatusOK, posts)
+}
+
+func UpdatePost(c *gin.Context) {
+	postID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+
+	var updatedPost interfaces.Post
+	if err := c.BindJSON(&updatedPost); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post data"})
+		return
+	}
+
+	result := DB.Model(&interfaces.Post{}).Where("id = ?", postID).Updates(&updatedPost)
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Post updated successfully"})
+}
+
+func DeletePost(c *gin.Context) {
+	postID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
 		return
 	}
 
 	result := DB.Delete(&interfaces.Post{}, postID)
 	if result.RowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, "Invalid post ID")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
 	}
 
-	c.JSON(http.StatusOK, "Post Deleted")
+	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
-// Get comment for post
-func GetCommentPost(c *gin.Context) {
-	postID, err := uuid.Parse(c.Param("post_id"))
+// Comment handlers
+func ListPostComments(c *gin.Context) {
+	postID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
 		return
 	}
 
-	var comment []interfaces.Comment
-
-	result := DB.Model(&interfaces.Comment{}).Where("post_id = ?", postID).Find(&comment)
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+	var comments []interfaces.Comment
+	if err := DB.Where("post_id = ?", postID).Find(&comments).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving comments"})
 		return
 	}
 
-	c.JSON(http.StatusOK, comment)
+	c.JSON(http.StatusOK, comments)
 }
 
-// Edit post
-func EditPost(c *gin.Context) {
-	postID, err := uuid.Parse(c.Param("post_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid edit request"})
+// Category handlers
+func ListCategories(c *gin.Context) {
+	var categories []interfaces.Category
+
+	if err := DB.Find(&categories).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving categories"})
 		return
 	}
 
-	var user interfaces.User
-
-	result := c.BindJSON(&user)
-	if result != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post format"})
-		return
-	}
-
-	result0 := DB.Model(&interfaces.User{}).Where("id = ?", postID).Updates(&user)
-	if result0.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error when updating post"})
-		return
-	}
-
-	c.JSON(http.StatusOK, "Post updated")
-}
-
-// Get all category
-func GetCategory(c *gin.Context) {
-	var category []interfaces.Category
-
-	result := DB.Find(&category)
-	if result.Error != nil {
-		c.JSON(500, gin.H{"error": "Error finding category"})
-		return
-	}
-
-	c.JSON(http.StatusOK, category)
+	c.JSON(http.StatusOK, categories)
 }
