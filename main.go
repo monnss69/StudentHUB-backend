@@ -1,14 +1,56 @@
-package handler
+package main
 
 import (
 	"backend/auth"
 	"backend/db"
 	"net/http"
 	"os"
+	"strings"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+// Middleware to handle CORS manually
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Allowed origins
+		allowedOrigins := []string{
+			"https://student-hub-frontend.vercel.app",
+			"http://localhost:3000",
+		}
+
+		origin := c.GetHeader("Origin")
+
+		// Check if origin is allowed
+		isAllowedOrigin := false
+		for _, allowedOrigin := range allowedOrigins {
+			if strings.EqualFold(origin, allowedOrigin) {
+				isAllowedOrigin = true
+				break
+			}
+		}
+
+		// Handle preflight requests
+		if c.Request.Method == "OPTIONS" {
+			if isAllowedOrigin {
+				c.Header("Access-Control-Allow-Origin", origin)
+				c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+				c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+				c.Header("Access-Control-Allow-Credentials", "true")
+				c.AbortWithStatus(204)
+				return
+			}
+		}
+
+		// Set CORS headers for non-OPTIONS requests
+		if isAllowedOrigin {
+			c.Header("Access-Control-Allow-Origin", origin)
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+
+		c.Next()
+	}
+}
 
 // Handler for Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -19,13 +61,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	router := gin.Default()
 
-	// CORS Configuration
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://student-hub-frontend.vercel.app", "http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		AllowCredentials: true,
-	}))
+	// Use custom CORS middleware
+	router.Use(corsMiddleware())
 
 	// Authentication Routes
 	router.POST("/auth", db.AuthenticateUser)
@@ -60,13 +97,8 @@ func main() {
 
 	router := gin.Default()
 
-	// CORS Configuration (same as in Handler)
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://student-hub-frontend.vercel.app", "http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		AllowCredentials: true,
-	}))
+	// Use custom CORS middleware
+	router.Use(corsMiddleware())
 
 	// Same route setup as in Handler
 	router.POST("/auth", db.AuthenticateUser)
