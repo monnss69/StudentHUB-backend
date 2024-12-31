@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"backend/auth"
@@ -10,52 +10,83 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
-	// Connect to database
-	db.Initialize()
+// Handler for Vercel
+func Handler(w http.ResponseWriter, r *http.Request) {
+	// Initialize database on first request
+	if db.DB == nil {
+		db.Initialize()
+	}
 
 	router := gin.Default()
 
-	// Set up CORS for your production frontend URL
+	// CORS Configuration
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // Update with your Vercel frontend URL
+		AllowOrigins:     []string{"https://your-frontend-domain.vercel.app", "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
 
-	// Route handling
-
-	// Authentication
+	// Authentication Routes
 	router.POST("/auth", db.AuthenticateUser)
 	router.POST("/auth/logout", db.LogOutUser)
 
-	// Users Route
+	// User Routes
 	router.POST("/users", db.CreateUser)
 	router.DELETE("/users/:id", auth.AuthMiddleware(), db.DeleteUser)
 	router.GET("/users", db.GetAllUser)
 	router.GET("/users/:id", db.GetUserID)
 
-	// Post route
+	// Post Routes
 	router.POST("/post", auth.AuthMiddleware(), db.CreatePost)
 	router.DELETE("/post/:post_id", auth.AuthMiddleware(), db.DeletePost)
 	router.GET("/post/:post_id", auth.AuthMiddleware(), db.GetPostID)
 	router.PUT("/post/:post_id", auth.AuthMiddleware(), db.EditPost)
 	router.GET("/:category", auth.AuthMiddleware(), db.GetCategoryPost)
 
-	// Comment route
+	// Comment Route
 	router.GET("/comment/:post_id", auth.AuthMiddleware(), db.GetCommentPost)
 
-	// Category route
+	// Category Route
 	router.GET("/category", db.GetCategory)
 
-	// Export Gin handler for Vercel
-	httpHandler := http.HandlerFunc(router.ServeHTTP)
+	// Serve the request
+	router.ServeHTTP(w, r)
+}
 
-	port := os.Getenv("PORT") // Vercel dynamically assigns a port
+// Main function for local development
+func main() {
+	db.Initialize()
+
+	router := gin.Default()
+
+	// CORS Configuration (same as in Handler)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"https://your-frontend-domain.vercel.app", "http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+	}))
+
+	// Same route setup as in Handler
+	router.POST("/auth", db.AuthenticateUser)
+	router.POST("/auth/logout", db.LogOutUser)
+	router.POST("/users", db.CreateUser)
+	router.DELETE("/users/:id", auth.AuthMiddleware(), db.DeleteUser)
+	router.GET("/users", db.GetAllUser)
+	router.GET("/users/:id", db.GetUserID)
+	router.POST("/post", auth.AuthMiddleware(), db.CreatePost)
+	router.DELETE("/post/:post_id", auth.AuthMiddleware(), db.DeletePost)
+	router.GET("/post/:post_id", auth.AuthMiddleware(), db.GetPostID)
+	router.PUT("/post/:post_id", auth.AuthMiddleware(), db.EditPost)
+	router.GET("/:category", auth.AuthMiddleware(), db.GetCategoryPost)
+	router.GET("/comment/:post_id", auth.AuthMiddleware(), db.GetCommentPost)
+	router.GET("/category", db.GetCategory)
+
+	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3333" // Default to 8080 for local testing
+		port = "3333"
 	}
 
-	http.ListenAndServe(":"+port, httpHandler)
+	http.ListenAndServe(":"+port, router)
 }
