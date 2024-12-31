@@ -51,8 +51,19 @@ func Initialize() {
 }
 
 func LogOutUser(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "studenthub-backend.vercel.app", false, true)
-	c.SetCookie("token", "", -1, "/", "studenthub-backend.vercel.app", false, false)
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		Domain:   "studenthub-backend.vercel.app",
+		MaxAge:   -1,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	}
+
+	// Clear the cookie
+	http.SetCookie(c.Writer, cookie)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
@@ -87,7 +98,19 @@ func AuthenticateUser(c *gin.Context) {
 			return
 		}
 
-		c.SetCookie("token", tokenString, 3600, "/", "studenthub-backend.vercel.app", false, true)
+		cookie := &http.Cookie{
+			Name:     "token",
+			Value:    tokenString,
+			Path:     "/",
+			Domain:   "studenthub-backend.vercel.app",
+			MaxAge:   3600,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteNoneMode,
+		}
+
+		// Set the cookie
+		http.SetCookie(c.Writer, cookie)
 		c.JSON(http.StatusOK, gin.H{"token": tokenString})
 	}
 }
