@@ -51,8 +51,8 @@ func Initialize() {
 }
 
 func LogOutUser(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "localhost", false, true)
-	c.SetCookie("token", "", -1, "/", "localhost", false, false)
+	c.SetCookie("token", "", -1, "/", "studenthub-backend.vercel.app", false, true)
+	c.SetCookie("token", "", -1, "/", "studenthub-backend.vercel.app", false, false)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
@@ -87,7 +87,7 @@ func AuthenticateUser(c *gin.Context) {
 			return
 		}
 
-		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
+		c.SetCookie("token", tokenString, 3600, "/", "studenthub-backend.vercel.app", false, true)
 		c.JSON(http.StatusOK, gin.H{"token": tokenString})
 	}
 }
