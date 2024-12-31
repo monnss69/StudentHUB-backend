@@ -21,7 +21,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// CORS Configuration
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://your-frontend-domain.vercel.app", "http://localhost:3000"},
+		AllowOrigins:     []string{"https://student-hub-frontend.vercel.app", "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
