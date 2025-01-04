@@ -48,6 +48,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Category routes
 	router.GET("/categories", db.ListCategories)
+	router.GET("/categories/:id", db.GetCategory)
 
 	// Serve the request
 	router.ServeHTTP(w, r)

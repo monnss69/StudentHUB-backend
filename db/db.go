@@ -240,13 +240,25 @@ func UpdatePost(c *gin.Context) {
 		return
 	}
 
-	var updatedPost interfaces.Post
-	if err := c.BindJSON(&updatedPost); err != nil {
+	var req interfaces.UpdatePostRequest
+	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post data"})
 		return
 	}
 
-	result := DB.Model(&interfaces.Post{}).Where("id = ?", postID).Updates(&updatedPost)
+	// Only update specific fields
+	result := DB.Model(&interfaces.Post{}).
+		Where("id = ?", postID).
+		Updates(map[string]interface{}{
+			"title":   req.Title,
+			"content": req.Content,
+		})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+		return
+	}
+
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
@@ -298,4 +310,16 @@ func ListCategories(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, categories)
+}
+
+func GetCategory(c *gin.Context) {
+	id := c.Param("id")
+	var category interfaces.Category
+
+	if err := DB.First(&category, "id = ?", id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+		return
+	}
+
+	c.JSON(http.StatusOK, category)
 }

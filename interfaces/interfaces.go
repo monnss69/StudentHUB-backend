@@ -22,7 +22,7 @@ type AuthenticateUser struct {
 
 type Category struct {
 	ID          uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Name        string    `gorm:"type:varchar(100);unique;not null"`
+	Name        string    `json:"name" gorm:"type:varchar(100);unique;not null"`
 	Description string    `gorm:"type:text"`
 	CreatedAt   time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
 }
@@ -37,6 +37,11 @@ type Post struct {
 	UpdatedAt  time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
 }
 
+type UpdatePostRequest struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
 type Tag struct {
 	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	Name      string    `gorm:"type:varchar(50);unique;not null"`
@@ -49,10 +54,10 @@ type PostTag struct {
 }
 
 type Comment struct {
-	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Content   string    `gorm:"type:text;not null"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Content   string    `json:"content" gorm:"type:text;not null"`
 	PostID    uuid.UUID `gorm:"column:post_id;type:uuid;not null;references:posts(id)"`
-	AuthorID  uuid.UUID `gorm:"column:author_id;type:uuid;not null;references:users(id)"`
-	CreatedAt time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
+	AuthorID  uuid.UUID `json:"author_id" gorm:"column:author_id;type:uuid;not null;references:users(id)"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
 	UpdatedAt time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
 }
