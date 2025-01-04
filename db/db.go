@@ -118,9 +118,7 @@ func GetUserPost(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"posts": posts,
-	})
+	c.JSON(http.StatusOK, posts)
 }
 
 func DeleteUser(c *gin.Context) {
