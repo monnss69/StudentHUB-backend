@@ -107,15 +107,7 @@ func GetUser(c *gin.Context) {
 
 func GetUserPost(c *gin.Context) {
 	// Get the user ID from the URL parameter
-	id := c.Param("id")
-
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user ID format",
-		})
-		return
-	}
+	userID := c.Param("id")
 
 	// Query all posts for this user
 	var posts []interfaces.Post
@@ -130,6 +122,7 @@ func GetUserPost(c *gin.Context) {
 		"posts": posts,
 	})
 }
+
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
