@@ -28,23 +28,24 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Authentication Routes
 	router.POST("/users", db.CreateUser)
-	router.GET("/users", db.ListUsers) // Supports ?username=query
-	router.GET("/users/:id", db.GetUser)
+	router.GET("/users", auth.AuthMiddleware(), db.ListUsers)
+	router.GET("/users/:id", auth.AuthMiddleware(), db.GetUser)
 	router.DELETE("/users/:id", auth.AuthMiddleware(), db.DeleteUser)
+	router.GET("users/:id/posts", auth.AuthMiddleware(), db.GetUserPost)
 
 	// Auth routes
 	router.POST("/login", db.Login)
-	router.POST("/logout", db.Logout)
+	router.POST("/logout", auth.AuthMiddleware(), db.Logout)
 
 	// Post routes
 	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)
 	router.GET("/posts/:id", db.GetPost)
-	router.GET("/posts/category/:category", db.ListPostsByCategory)
+	router.GET("/posts/category/:category", auth.AuthMiddleware(), db.ListPostsByCategory)
 	router.PUT("/posts/:id", auth.AuthMiddleware(), db.UpdatePost)
 	router.DELETE("/posts/:id", auth.AuthMiddleware(), db.DeletePost)
 
 	// Comment routes
-	router.GET("/posts/:id/comments", db.ListPostComments)
+	router.GET("/posts/:id/comments", auth.AuthMiddleware(), db.ListPostComments)
 
 	// Category routes
 	router.GET("/categories", db.ListCategories)
