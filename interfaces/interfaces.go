@@ -28,12 +28,12 @@ type Category struct {
 }
 
 type Post struct {
-	ID         uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	ID         uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	Title      string    `json:"title" gorm:"type:varchar(255);not null"`
 	Content    string    `json:"content" gorm:"type:text;not null"`
 	AuthorID   uuid.UUID `json:"author_id" gorm:"column:author_id;type:uuid;not null;references:users(id)"`
 	CategoryID uuid.UUID `json:"category_id" gorm:"column:category_id;type:uuid;not null;references:categories(id)"`
-	CreatedAt  time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
+	CreatedAt  time.Time `json:"created_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
 	UpdatedAt  time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
 }
 
