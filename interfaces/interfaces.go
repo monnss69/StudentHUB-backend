@@ -21,7 +21,7 @@ type AuthenticateUser struct {
 }
 
 type Category struct {
-	ID          uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	ID          uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	Name        string    `json:"name" gorm:"type:varchar(100);unique;not null"`
 	Description string    `gorm:"type:text"`
 	CreatedAt   time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
