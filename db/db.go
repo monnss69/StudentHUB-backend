@@ -313,11 +313,14 @@ func ListCategories(c *gin.Context) {
 }
 
 func GetCategory(c *gin.Context) {
+	// Get the ID parameter
 	id := c.Param("id")
+
 	var category interfaces.Category
 
-	if err := DB.First(&category, "id = ?", id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+	result := DB.First(&category, "id = ?", id)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
 
