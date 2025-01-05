@@ -56,8 +56,13 @@ type PostTag struct {
 type Comment struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	Content   string    `json:"content" gorm:"type:text;not null"`
-	PostID    uuid.UUID `gorm:"column:post_id;type:uuid;not null;references:posts(id)"`
+	PostID    uuid.UUID `json:"post_id" gorm:"column:post_id;type:uuid;not null;references:posts(id)"`
 	AuthorID  uuid.UUID `json:"author_id" gorm:"column:author_id;type:uuid;not null;references:users(id)"`
 	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
 	UpdatedAt time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
+}
+
+type CommentInput struct {
+	Content  string    `json:"content"`
+	AuthorID uuid.UUID `json:"author_id"`
 }

@@ -316,6 +316,36 @@ func ListPostComments(c *gin.Context) {
 	c.JSON(http.StatusOK, comments)
 }
 
+func CreateComment(c *gin.Context) {
+	postID := c.Param("id")
+	var newComment interfaces.CommentInput
+
+	// Check if post exists
+	var post interfaces.Post
+	if err := DB.First(&post, "id = ?", postID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching post"})
+		return
+	}
+
+	if err := c.BindJSON(&newComment); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment data"})
+		return
+	}
+
+	comment := interfaces.Comment{
+		Content:  newComment.Content,
+		AuthorID: newComment.AuthorID,
+		PostID:   post.ID,
+	}
+
+	if err := DB.Create(&comment).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating comment"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, comment)
+}
+
 // Category handlers
 func ListCategories(c *gin.Context) {
 	var categories []interfaces.Category

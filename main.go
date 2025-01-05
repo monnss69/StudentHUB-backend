@@ -46,6 +46,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Comment routes
 	router.GET("/posts/:id/comments", auth.AuthMiddleware(), db.ListPostComments)
+	router.POST("/posts/:id/comments", auth.AuthMiddleware(), db.CreateComment)
 
 	// Category routes
 	router.GET("/categories", db.ListCategories)
