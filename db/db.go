@@ -134,19 +134,18 @@ func DeleteUser(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	cookie := &http.Cookie{
-		Name:     "token",
-		Value:    "",
-		Path:     "/",
-		Domain:   "studenthub-backend.vercel.app",
-		MaxAge:   -1,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-	}
+	c.SetCookie(
+		"token",                         // name
+		"",                              // value
+		-1,                              // maxAge
+		"/",                             // path
+		"studenthub-backend.vercel.app", // domain
+		true,                            // secure
+		true,                            // httpOnly
+	)
 
-	// Clear the cookie
-	http.SetCookie(c.Writer, cookie)
+	// You can also explicitly set SameSite attribute using header
+	c.Header("Set-Cookie", "token=; Path=/; Domain=studenthub-backend.vercel.app; Max-Age=-1; Secure; HttpOnly; SameSite=None")
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
