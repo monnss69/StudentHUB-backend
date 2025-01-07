@@ -35,7 +35,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Auth routes
 	router.POST("/login", db.Login)
-	router.POST("/logout", auth.AuthMiddleware(), db.Logout)
+	router.POST("/logout", db.Logout)
 
 	// Post routes
 	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)
