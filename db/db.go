@@ -348,11 +348,8 @@ func CreatePostTag(c *gin.Context) {
 		// Check if tag exists
 		var tagRecord interfaces.Tag
 		if err := DB.First(&tagRecord, "name = ?", tag.Name).Error; err != nil {
-			// Create the tag if it doesn't exist
-			if err := DB.Create(&tag).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tag"})
-				return
-			}
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding tag"})
+			return
 		}
 
 		// Create the PostTag record
