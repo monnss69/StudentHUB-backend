@@ -332,9 +332,9 @@ func ListPostTags(c *gin.Context) {
 
 	var tags []interfaces.Tag
 
-	if err := DB.Joins("JOIN post_tags ON post_tags.tag_id = tags.id").
+	if result := DB.Joins("JOIN post_tags ON post_tags.tag_id = tags.id").
 		Where("post_tags.post_id = ?", postID).
-		Find(&tags); err != nil {
+		Find(&tags); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving tags"})
 		return
 	}
