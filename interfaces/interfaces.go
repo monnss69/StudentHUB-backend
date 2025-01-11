@@ -43,9 +43,9 @@ type UpdatePostRequest struct {
 }
 
 type Tag struct {
-	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Name      string    `gorm:"type:varchar(50);unique;not null"`
-	CreatedAt time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name      string    `json:"name" gorm:"type:varchar(50);unique;not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
 }
 
 type PostTag struct {

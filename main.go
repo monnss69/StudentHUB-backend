@@ -26,6 +26,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		AllowCredentials: true,
 	}))
 
+	// Check route
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "API is running"})
+	})
+
 	// Authentication Routes
 	router.POST("/users", db.CreateUser)
 	router.GET("/users", auth.AuthMiddleware(), db.ListUsers)
