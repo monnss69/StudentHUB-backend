@@ -44,6 +44,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	router.PUT("/posts/:id", auth.AuthMiddleware(), db.UpdatePost)
 	router.DELETE("/posts/:id", auth.AuthMiddleware(), db.DeletePost)
 
+	// Tag routes
+	router.GET("/tags", db.ListTags)
+	router.GET("/tags/:id", db.GetTag)
+	router.GET("/posts/:id/tags", auth.AuthMiddleware(), db.ListPostTags)
+
 	// Comment routes
 	router.GET("/posts/:id/comments", auth.AuthMiddleware(), db.ListPostComments)
 	router.POST("/posts/:id/comments", auth.AuthMiddleware(), db.CreateComment)

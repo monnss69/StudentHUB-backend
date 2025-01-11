@@ -298,6 +298,58 @@ func DeletePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
+// Tag handlers
+func ListTags(c *gin.Context) {
+	var tags []interfaces.Tag
+
+	if err := DB.Find(&tags).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving tags"})
+		return
+	}
+
+	c.JSON(http.StatusOK, tags)
+}
+
+func GetTag(c *gin.Context) {
+	id := c.Param("id")
+
+	var tag interfaces.Tag
+	result := DB.First(&tag, "id = ?", id)
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Tag not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, tag)
+}
+
+func ListPostTags(c *gin.Context) {
+	postID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+
+	var tags []interfaces.Tag
+	var postTags []interfaces.PostTag
+	if err := DB.Where("post_id = ?", postID).Find(&postTags).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving tags"})
+		return
+	}
+
+	for _, postTag := range postTags {
+		var tag interfaces.Tag
+		if err := DB.First(&tag, "id = ?", postTag.TagID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching tag"})
+			return
+		}
+
+		tags = append(tags, tag)
+	}
+
+	c.JSON(http.StatusOK, tags)
+}
+
 // Comment handlers
 func ListPostComments(c *gin.Context) {
 	postID, err := uuid.Parse(c.Param("id"))
