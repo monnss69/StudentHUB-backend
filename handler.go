@@ -52,7 +52,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Tag routes
 	router.GET("/tags", db.ListTags)
 	router.GET("/tags/:id", db.GetTag)
-	router.GET("/posts/:id/tags", auth.AuthMiddleware(), db.ListPostTags)
+	router.GET("/posts/:id/tags", db.ListPostTags)
 
 	// Comment routes
 	router.GET("/posts/:id/comments", auth.AuthMiddleware(), db.ListPostComments)
