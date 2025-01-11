@@ -331,20 +331,14 @@ func ListPostTags(c *gin.Context) {
 	}
 
 	var tags []interfaces.Tag
-	var postTags []interfaces.PostTag
-	if err := DB.Where("post_id = ?", postID).Find(&postTags).Error; err != nil {
+
+	if err := DB.
+		Select("tags.*").
+		Joins("JOIN post_tags ON post_tags.tag_id = tags.id").
+		Where("post_tags.post_id = ?", postID).
+		Find(&tags).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving tags"})
 		return
-	}
-
-	for _, postTag := range postTags {
-		var tag interfaces.Tag
-		if err := DB.First(&tag, "id = ?", postTag.TagID).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching tag"})
-			return
-		}
-
-		tags = append(tags, tag)
 	}
 
 	c.JSON(http.StatusOK, tags)
