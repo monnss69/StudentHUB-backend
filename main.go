@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Handler for Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
 	// Initialize database on first request
 	if db.DB == nil {
