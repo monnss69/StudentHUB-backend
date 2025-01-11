@@ -345,20 +345,27 @@ func CreatePostTag(c *gin.Context) {
 
 	// Create a new PostTag record for each tag
 	for _, tag := range tags {
-		// Check if tag exists
 		var tagRecord interfaces.Tag
 		if err := DB.First(&tagRecord, "name = ?", tag.Name).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding tag"})
 			return
 		}
 
-		// Create the PostTag record
+		// Check if the post-tag relationship already exists
+		var existingPostTag interfaces.PostTag
+		if err := DB.Where("post_id = ? AND tag_id = ?", postID, tagRecord.ID).First(&existingPostTag).Error; err == nil {
+			// Relationship already exists, skip creation
+			continue
+		}
+
+		// Create the PostTag record only if it doesn't exist
 		postTag := interfaces.PostTag{
 			PostID: postID,
 			TagID:  tagRecord.ID,
 		}
 
 		if err := DB.Create(&postTag).Error; err != nil {
+			log.Printf("Error creating post tag: %v", err) // Add this line for debugging
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating post tag"})
 			return
 		}
