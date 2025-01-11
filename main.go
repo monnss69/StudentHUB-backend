@@ -53,6 +53,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	router.GET("/tags/:id", db.GetTag)
 	router.GET("/posts/:id/tags", auth.AuthMiddleware(), db.ListPostTags)
 	router.POST("/posts/:id/tags", auth.AuthMiddleware(), db.CreatePostTag)
+	router.DELETE("/posts/:id/tags/:tag_id", auth.AuthMiddleware(), db.DeletePostTag)
 
 	// Comment routes
 	router.GET("/posts/:id/comments", auth.AuthMiddleware(), db.ListPostComments)

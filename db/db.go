@@ -337,14 +337,12 @@ func CreatePostTag(c *gin.Context) {
 		return
 	}
 
-	// Check if post exists
 	var post interfaces.Post
 	if err := DB.First(&post, "id = ?", postID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching post"})
 		return
 	}
 
-	// Create a new PostTag record for each tag
 	for _, tag := range tags {
 		var tagRecord interfaces.Tag
 		if err := DB.First(&tagRecord, "name = ?", tag.Name).Error; err != nil {
@@ -384,6 +382,24 @@ func ListPostTags(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, tags)
+}
+
+func DeletePostTag(c *gin.Context) {
+	postID, _ := uuid.Parse(c.Param("id"))
+	tagID, _ := uuid.Parse(c.Param("tag_id"))
+
+	postTag := interfaces.PostTag{
+		PostID: postID,
+		TagID:  tagID,
+	}
+
+	result := DB.Delete(&postTag)
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Tag not found on post"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Tags removed from post successfully"})
 }
 
 // Comment handlers
