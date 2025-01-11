@@ -66,3 +66,11 @@ type CommentInput struct {
 	Content  string    `json:"content"`
 	AuthorID uuid.UUID `json:"author_id"`
 }
+
+type Tabler interface {
+	TableName() string
+}
+
+func (PostTag) TableName() string {
+	return "posts_tags"
+}

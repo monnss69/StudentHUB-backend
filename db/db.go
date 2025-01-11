@@ -352,12 +352,6 @@ func CreatePostTag(c *gin.Context) {
 			return
 		}
 
-		// Check if the post-tag relationship already exists
-		var existingPostTag interfaces.PostTag
-		if err := DB.Where("post_id = ? AND tag_id = ?", postID, tagRecord.ID).First(&existingPostTag).Error; err == nil {
-			continue
-		}
-
 		// Create the PostTag record only if it doesn't exist
 		postTag := interfaces.PostTag{
 			PostID: post.ID,
