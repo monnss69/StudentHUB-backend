@@ -3,6 +3,7 @@ package db
 import (
 	"backend/auth"
 	"backend/interfaces"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -364,11 +365,12 @@ func CreatePostTag(c *gin.Context) {
 		}
 
 		if err := DB.Create(&postTag).Error; err != nil {
-			log.Printf("Error creating post tag: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating post tag"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error creating post tag: %v", err)})
 			return
 		}
 	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Tags added to post successfully"})
 }
 
 func ListPostTags(c *gin.Context) {
