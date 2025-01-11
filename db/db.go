@@ -323,6 +323,51 @@ func GetTag(c *gin.Context) {
 	c.JSON(http.StatusOK, tag)
 }
 
+func CreatePostTag(c *gin.Context) {
+	postID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+
+	var tags []interfaces.Tag
+	if err := c.BindJSON(&tags); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag data"})
+		return
+	}
+
+	// Check if post exists
+	var post interfaces.Post
+	if err := DB.First(&post, "id = ?", postID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching post"})
+		return
+	}
+
+	// Create a new PostTag record for each tag
+	for _, tag := range tags {
+		// Check if tag exists
+		var tagRecord interfaces.Tag
+		if err := DB.First(&tagRecord, "name = ?", tag.Name).Error; err != nil {
+			// Create the tag if it doesn't exist
+			if err := DB.Create(&tag).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tag"})
+				return
+			}
+		}
+
+		// Create the PostTag record
+		postTag := interfaces.PostTag{
+			PostID: postID,
+			TagID:  tagRecord.ID,
+		}
+
+		if err := DB.Create(&postTag).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating post tag"})
+			return
+		}
+	}
+}
+
 func ListPostTags(c *gin.Context) {
 	postID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
