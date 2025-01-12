@@ -56,8 +56,7 @@ func getCookieDomain(c *gin.Context) string {
 	// Get the request host
 	host := c.Request.Host
 
-	// Check if we're in development (localhost)
-	if strings.HasPrefix(host, "localhost") {
+	if strings.Contains(host, "localhost") {
 		return "localhost"
 	}
 
