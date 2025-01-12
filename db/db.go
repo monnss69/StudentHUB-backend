@@ -198,6 +198,37 @@ func Login(c *gin.Context) {
 	}
 }
 
+func UpdateUser(c *gin.Context) {
+	id := c.Param("id")
+	var req interfaces.UpdateUserRequest
+
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data"})
+		return
+	}
+
+	// Only update specific fields
+	result := DB.Model(&interfaces.User{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"username":   req.Username,
+			"email":      req.Email,
+			"avatar_url": req.AvatarURL,
+		})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+}
+
 // Post handlers
 func CreatePost(c *gin.Context) {
 	var post interfaces.Post

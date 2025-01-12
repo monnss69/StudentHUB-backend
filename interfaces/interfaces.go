@@ -16,6 +16,12 @@ type User struct {
 	AvatarURL    string    `json:"avatar_url" gorm:"type:text"`
 }
 
+type UpdateUserRequest struct {
+	Username  string `json:"username"`
+	AvatarURL string `json:"avatar_url"`
+	Email     string `json:"email"`
+}
+
 type AuthenticateUser struct {
 	Username     string `json:"username" gorm:"type:varchar(50);not null"`
 	PasswordHash string `json:"password" gorm:"column:password_hash;type:varchar(255);not null"`

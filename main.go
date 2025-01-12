@@ -36,6 +36,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	router.GET("/users/:id", auth.AuthMiddleware(), db.GetUser)
 	router.DELETE("/users/:id", auth.AuthMiddleware(), db.DeleteUser)
 	router.GET("users/:id/posts", auth.AuthMiddleware(), db.GetUserPost)
+	router.PUT("/users/:id", auth.AuthMiddleware(), db.UpdateUser)
 
 	// Auth routes
 	router.POST("/login", db.Login)
