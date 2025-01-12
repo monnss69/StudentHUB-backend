@@ -63,6 +63,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	router.GET("/categories", db.ListCategories)
 	router.GET("/categories/:id", db.GetCategory)
 
+	// Image routes
+	router.POST("/api/upload", db.UploadHandler)
+	router.DELETE("/api/upload/:username", db.DeleteImageHandler)
+
 	// Serve the request
 	router.ServeHTTP(w, r)
 }
