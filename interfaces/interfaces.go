@@ -13,6 +13,7 @@ type User struct {
 	PasswordHash string    `json:"password_hash" gorm:"column:password_hash;type:varchar(255);not null"`
 	CreatedAt    time.Time `json:"created_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
 	UpdatedAt    time.Time `json:"updated_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
+	AvatarURL    string    `json:"avatar_url" gorm:"type:text"`
 }
 
 type AuthenticateUser struct {
