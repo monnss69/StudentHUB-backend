@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"os"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 // CloudinaryService holds the Cloudinary client configuration
@@ -19,6 +21,12 @@ type CloudinaryService struct {
 
 // NewCloudinaryService creates a new Cloudinary service instance
 func NewCloudinaryService() (*CloudinaryService, error) {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: No .env file found. Ensure environment variables are set.")
+	}
+
 	// Get Cloudinary credentials from environment variables
 	cloudName := os.Getenv("CLOUD_NAME")
 	apiKey := os.Getenv("CLOUD_API_KEY")
