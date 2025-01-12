@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -50,18 +49,6 @@ func Initialize() {
 	// Connection pool settings
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
-}
-
-func getCookieDomain(c *gin.Context) string {
-	// Get the request host
-	host := c.Request.Host
-
-	if strings.Contains(host, "localhost") {
-		return "localhost"
-	}
-
-	// Production domain
-	return "studenthub-backend.vercel.app"
 }
 
 // User handlers
@@ -147,6 +134,26 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
+func Logout(c *gin.Context) {
+	c.SetCookie(
+		"token",                         // name
+		"",                              // value
+		-1,                              // maxAge
+		"/",                             // path
+		"studenthub-backend.vercel.app", // domain
+		true,                            // secure
+		true,                            // httpOnly
+	)
+
+	// You can also explicitly set SameSite attribute using header
+	c.Header("Set-Cookie", "token=; Path=/; Domain=studenthub-backend.vercel.app; Max-Age=-1; Secure; HttpOnly; SameSite=None")
+	c.Header("Set-Cookie", "token=; Path=/; Domain=localhost; Max-Age=-1; Secure; HttpOnly; SameSite=None")
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully logged out",
+	})
+}
+
 func Login(c *gin.Context) {
 	var authUser interfaces.AuthenticateUser
 
@@ -168,52 +175,28 @@ func Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Wrong username/password"})
 		return
+	} else {
+		tokenString, err := auth.CreateToken(user.Username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating JWT token"})
+			return
+		}
+
+		cookie := &http.Cookie{
+			Name:     "token",
+			Value:    tokenString,
+			Path:     "/",
+			Domain:   "studenthub-backend.vercel.app",
+			MaxAge:   3600,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteNoneMode,
+		}
+
+		// Set the cookie
+		http.SetCookie(c.Writer, cookie)
+		c.JSON(http.StatusOK, gin.H{"token": tokenString})
 	}
-
-	tokenString, err := auth.CreateToken(user.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating JWT token"})
-		return
-	}
-
-	// Get appropriate domain for the cookie
-	domain := getCookieDomain(c)
-
-	// Set cookie with dynamic domain
-	cookie := &http.Cookie{
-		Name:     "token",
-		Value:    tokenString,
-		Path:     "/",
-		Domain:   domain,
-		MaxAge:   3600,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-	}
-
-	http.SetCookie(c.Writer, cookie)
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
-}
-
-func Logout(c *gin.Context) {
-	domain := getCookieDomain(c)
-
-	c.SetCookie(
-		"token", // name
-		"",      // value
-		-1,      // maxAge
-		"/",     // path
-		domain,  // domain
-		true,    // secure
-		true,    // httpOnly
-	)
-
-	// Set header with appropriate domain
-	c.Header("Set-Cookie", fmt.Sprintf("token=; Path=/; Domain=%s; Max-Age=-1; Secure; HttpOnly; SameSite=None", domain))
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully logged out",
-	})
 }
 
 func UpdateUser(c *gin.Context) {
