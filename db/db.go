@@ -182,19 +182,23 @@ func Login(c *gin.Context) {
 			return
 		}
 
-		cookie := &http.Cookie{
-			Name:     "token",
-			Value:    tokenString,
-			Path:     "/",
-			Domain:   "studenthub-backend.vercel.app",
-			MaxAge:   3600,
-			Secure:   true,
-			HttpOnly: false,
-			SameSite: http.SameSiteNoneMode,
-		}
+		origin := c.Request.Header.Get("Origin")
 
-		// Set the cookie
-		http.SetCookie(c.Writer, cookie)
+		// Set multiple cookies for different domains
+		c.SetCookie(
+			"token",
+			tokenString,
+			3600,  // MaxAge
+			"/",   // Path
+			"",    // Empty domain to use the current domain
+			true,  // Secure
+			false, // Not HttpOnly since JS needs access
+		)
+
+		// Set additional headers for CORS
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Origin", origin)
+
 		c.JSON(http.StatusOK, gin.H{"token": tokenString})
 	}
 }
