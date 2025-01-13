@@ -146,7 +146,7 @@ func Logout(c *gin.Context) {
 	)
 
 	// You can also explicitly set SameSite attribute using header
-	c.Header("Set-Cookie", "token=; Path=/; Domain=studenthub-backend.vercel.app; Max-Age=-1; SameSite=None")
+	c.Header("Set-Cookie", "token=; Path=/; Domain=studenthub-backend.vercel.app; Secure; Max-Age=-1; SameSite=None")
 	c.Header("Set-Cookie", "token=; Path=/; Domain=localhost; Max-Age=-1; SameSite=None")
 
 	c.JSON(http.StatusOK, gin.H{
@@ -188,7 +188,7 @@ func Login(c *gin.Context) {
 			Path:     "/",
 			Domain:   "studenthub-backend.vercel.app",
 			MaxAge:   3600,
-			Secure:   false,
+			Secure:   true,
 			HttpOnly: false,
 			SameSite: http.SameSiteNoneMode,
 		}
