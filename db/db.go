@@ -204,6 +204,39 @@ func Logout(c *gin.Context) {
 	})
 }
 
+// Add these functions to your db/db.go file
+
+func SyncToken(c *gin.Context) {
+	var tokenData struct {
+		Token string `json:"token"`
+	}
+
+	if err := c.BindJSON(&tokenData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token data"})
+		return
+	}
+
+	// Verify the token is valid
+	_, err := auth.VerifyToken(tokenData.Token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	// Set the cookie with the token
+	c.SetCookie(
+		"token",
+		tokenData.Token,
+		60*60*24*30, // 30 days
+		"/",
+		"",
+		true,
+		true,
+	)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Token synchronized successfully"})
+}
+
 func UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 	var req interfaces.UpdateUserRequest

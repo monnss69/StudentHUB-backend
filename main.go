@@ -41,6 +41,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Auth routes
 	router.POST("/login", db.Login)
 	router.POST("/logout", db.Logout)
+	router.POST("/api/auth/sync", db.SyncToken)
 
 	// Post routes
 	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)

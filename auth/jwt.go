@@ -43,7 +43,7 @@ func CreateToken(username string) (string, error) {
 }
 
 // verifyToken verifies and parses a JWT token
-func verifyToken(tokenString string) (*jwt.Token, error) {
+func VerifyToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -80,7 +80,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Verify the token
-		token, err := verifyToken(tokenString)
+		token, err := VerifyToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
