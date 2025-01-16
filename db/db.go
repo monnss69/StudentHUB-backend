@@ -134,57 +134,74 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
-func Logout(c *gin.Context) {
-	// Clear the token cookie
-	c.Header("Set-Cookie", "token=; Path=/; Domain=student-hub-frontend.vercel.app; Secure; Max-Age=-1; SameSite=None")
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully logged out",
-	})
-}
-
 func Login(c *gin.Context) {
 	var authUser interfaces.AuthenticateUser
 
 	if err := c.BindJSON(&authUser); err != nil {
-		c.JSON(400, gin.H{"error": "Error binding JSON"})
+		c.JSON(400, gin.H{"error": "Invalid login data"})
 		return
 	}
 
-	// First find the user by username
+	// Find user by username
 	var user interfaces.User
 	result := DB.Where("username = ?", authUser.Username).First(&user)
 	if result.Error != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Wrong username/password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	// Compare the provided password with stored hash
+	// Verify password
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(authUser.PasswordHash))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Wrong username/password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
-	} else {
-		tokenString, err := auth.CreateToken(user.Username)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating JWT token"})
-			return
-		}
-
-		cookie := &http.Cookie{
-			Name:     "token",
-			Value:    tokenString,
-			Path:     "/",
-			Domain:   ".vercel.app",
-			MaxAge:   99999999,
-			Secure:   true,
-			HttpOnly: true,
-			SameSite: http.SameSiteNoneMode,
-		}
-		http.SetCookie(c.Writer, cookie)
-
-		c.JSON(http.StatusOK, gin.H{"token": tokenString})
 	}
+
+	// Create JWT token
+	tokenString, err := auth.CreateToken(user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating token"})
+		return
+	}
+
+	// Set secure cookie
+	c.SetCookie(
+		"token",     // name
+		tokenString, // value
+		60*60*24*30, // maxAge (30 days in seconds)
+		"/",         // path
+		"",          // domain (empty = current domain)
+		true,        // secure
+		true,        // httpOnly
+	)
+
+	// Also return token in response for client-side storage
+	c.JSON(http.StatusOK, gin.H{
+		"token": tokenString,
+		"user": gin.H{
+			"id":         user.ID,
+			"username":   user.Username,
+			"email":      user.Email,
+			"avatar_url": user.AvatarURL,
+		},
+	})
+}
+
+func Logout(c *gin.Context) {
+	// Clear the cookie by setting maxAge to -1
+	c.SetCookie(
+		"token", // name
+		"",      // value
+		-1,      // maxAge
+		"/",     // path
+		"",      // domain
+		true,    // secure
+		true,    // httpOnly
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully logged out",
+	})
 }
 
 func UpdateUser(c *gin.Context) {

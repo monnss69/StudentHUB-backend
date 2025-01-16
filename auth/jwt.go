@@ -14,28 +14,26 @@ import (
 var secretKey string
 
 func init() {
-	// Load environment variables from .env
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Warning: No .env file found. Ensure environment variables are set.")
+		fmt.Println("Warning: No .env file found")
 	}
 
-	// Load JWT secret key
 	secretKey = os.Getenv("JWT_SECRET")
 	if secretKey == "" {
-		panic("JWT_SECRET is not set in environment variables")
+		panic("JWT_SECRET is not set")
 	}
 }
 
-// CreateToken generates a JWT token for the given username
+// CreateToken generates a JWT token with a longer expiration time
 func CreateToken(username string) (string, error) {
+	// Create token with 30-day expiration
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": username,
-		"exp": time.Now().Add(time.Hour).Unix(),
-		"iss": time.Now().Unix(),
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(), // 30 days
+		"iat": time.Now().Unix(),
 	})
 
-	// Use the secret key to sign the token
 	tokenString, err := claims.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err
@@ -44,11 +42,9 @@ func CreateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-// verifyToken verifies and parses a JWT token string
+// verifyToken verifies and parses a JWT token
 func verifyToken(tokenString string) (*jwt.Token, error) {
-	// Parse the token with the secret key
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Ensure the signing method is HMAC
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -59,7 +55,6 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 		return nil, err
 	}
 
-	// Check if the token is valid
 	if !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
@@ -67,42 +62,41 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 	return token, nil
 }
 
-// AuthMiddleware is a middleware that checks for a valid JWT token
+// AuthMiddleware verifies the JWT token from cookies
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get the token from the "token" cookie
+		// First try to get token from cookie
 		tokenString, err := c.Cookie("token")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "JWT Token missing!"})
-			c.Abort()
-			return
+			// If no cookie, try Authorization header
+			authHeader := c.GetHeader("Authorization")
+			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+				tokenString = authHeader[7:]
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "No valid authentication token found"})
+				c.Abort()
+				return
+			}
 		}
 
 		// Verify the token
 		token, err := verifyToken(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Token"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
 		}
 
-		// Extract claims from the token
+		// Extract and validate claims
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Add username to the context
-			username, ok := claims["sub"].(string)
-			if !ok {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token Claims"})
-				c.Abort()
+			if username, ok := claims["sub"].(string); ok {
+				c.Set("username", username)
+				c.Next()
 				return
 			}
-			c.Set("username", username)
-		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token Claims"})
-			c.Abort()
-			return
 		}
 
-		// Proceed to the next middleware or handler
-		c.Next()
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+		c.Abort()
 	}
 }
