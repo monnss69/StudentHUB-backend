@@ -136,7 +136,7 @@ func DeleteUser(c *gin.Context) {
 
 func Logout(c *gin.Context) {
 	// Clear the token cookie
-	c.Header("Set-Cookie", "token=; Path=/; Domain=https://student-hub-frontend.vercel.app; Secure; Max-Age=-1; SameSite=None")
+	c.Header("Set-Cookie", "token=; Path=/; Domain=student-hub-frontend.vercel.app; Secure; Max-Age=-1; SameSite=None")
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
@@ -175,7 +175,7 @@ func Login(c *gin.Context) {
 			Name:     "token",
 			Value:    tokenString,
 			Path:     "/",
-			Domain:   "https://student-hub-frontend.vercel.app",
+			Domain:   "student-hub-frontend.vercel.app",
 			MaxAge:   99999999,
 			Secure:   true,
 			HttpOnly: true,
