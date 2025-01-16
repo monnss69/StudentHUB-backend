@@ -135,19 +135,8 @@ func DeleteUser(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie(
-		"token",                         // name
-		"",                              // value
-		-1,                              // maxAge
-		"/",                             // path
-		"studenthub-backend.vercel.app", // domain
-		true,                            // secure
-		true,                            // httpOnly
-	)
-
-	// You can also explicitly set SameSite attribute using header
+	// Clear the token cookie
 	c.Header("Set-Cookie", "token=; Path=/; Domain=studenthub-backend.vercel.app; Secure; Max-Age=-1; SameSite=None")
-	c.Header("Set-Cookie", "token=; Path=/; Domain=localhost; Max-Age=-1; SameSite=None")
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
@@ -182,22 +171,17 @@ func Login(c *gin.Context) {
 			return
 		}
 
-		origin := c.Request.Header.Get("Origin")
-
-		// Set multiple cookies for different domains
-		c.SetCookie(
-			"token",
-			tokenString,
-			3600,  // MaxAge
-			"/",   // Path
-			"",    // Empty domain to use the current domain
-			true,  // Secure
-			false, // Not HttpOnly since JS needs access
-		)
-
-		// Set additional headers for CORS
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Origin", origin)
+		cookie := &http.Cookie{
+			Name:     "token",
+			Value:    tokenString,
+			Path:     "/",
+			Domain:   "studenthub-backend.vercel.app",
+			MaxAge:   99999999,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteNoneMode,
+		}
+		http.SetCookie(c.Writer, cookie)
 
 		c.JSON(http.StatusOK, gin.H{"token": tokenString})
 	}
