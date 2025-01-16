@@ -4,7 +4,6 @@ import (
 	"backend/auth"
 	"backend/db"
 	"net/http"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -24,10 +23,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
-			return true // Be more restrictive in production
-		},
-		MaxAge: 12 * time.Hour,
+		MaxAge:           99999999,
 	}))
 	// Check route
 	router.GET("/", func(c *gin.Context) {

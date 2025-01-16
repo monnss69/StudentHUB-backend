@@ -175,7 +175,7 @@ func Login(c *gin.Context) {
 			Name:     "token",
 			Value:    tokenString,
 			Path:     "/",
-			Domain:   "student-hub-frontend.vercel.app",
+			Domain:   ".vercel.app",
 			MaxAge:   99999999,
 			Secure:   true,
 			HttpOnly: true,
