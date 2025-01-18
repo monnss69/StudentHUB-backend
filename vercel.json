@@ -6,6 +6,11 @@
       "use": "@vercel/go"
     }
   ],
+  "functions": {
+    "main.go": {
+      "maxDuration": 30
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
