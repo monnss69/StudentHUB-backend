@@ -4,6 +4,7 @@ import (
 	"backend/auth"
 	"backend/db"
 	"net/http"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
+		MaxAge:           30 * 24 * time.Hour,
 	}))
 
 	// Check route
