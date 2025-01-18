@@ -23,7 +23,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
-		MaxAge:           99999999,
 	}))
 	// Check route
 	router.GET("/", func(c *gin.Context) {
