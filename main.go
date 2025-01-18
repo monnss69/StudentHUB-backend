@@ -46,7 +46,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Post routes
 	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)
 	router.GET("/posts/:id", db.GetPost)
-	router.GET("/posts/category/:category", auth.AuthMiddleware(), db.ListPostsByCategory)
+	router.GET("/posts/category/:category/:pageIndex", auth.AuthMiddleware(), db.ListPostsByCategory)
 	router.PUT("/posts/:id", auth.AuthMiddleware(), db.UpdatePost)
 	router.DELETE("/posts/:id", auth.AuthMiddleware(), db.DeletePost)
 
