@@ -8,7 +8,7 @@
   ],
   "functions": {
     "main.go": {
-      "maxDuration": 30
+      "maxDuration": 90
     }
   },
   "routes": [
