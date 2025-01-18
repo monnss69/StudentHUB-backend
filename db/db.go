@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -303,6 +304,18 @@ func GetPost(c *gin.Context) {
 
 func ListPostsByCategory(c *gin.Context) {
 	category := c.Param("category")
+	pageIndex := c.Param("pageIndex")
+
+	// Convert pageIndex string to int
+	page, err := strconv.Atoi(pageIndex)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page index"})
+		return
+	}
+
+	// Define items per page
+	const itemsPerPage = 10
+	offset := page * itemsPerPage
 
 	var categoryRecord interfaces.Category
 	if err := DB.Where("name = ?", category).First(&categoryRecord).Error; err != nil {
@@ -311,7 +324,11 @@ func ListPostsByCategory(c *gin.Context) {
 	}
 
 	var posts []interfaces.Post
-	if err := DB.Where("category_id = ?", categoryRecord.ID).Find(&posts).Error; err != nil {
+	if err := DB.Order("created_at DESC").
+		Where("category_id = ?", categoryRecord.ID).
+		Limit(itemsPerPage). // Limit to 10 items
+		Offset(offset).      // Skip previous pages
+		Find(&posts).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No posts found in this category"})
 		return
 	}

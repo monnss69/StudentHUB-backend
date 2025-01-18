@@ -40,7 +40,7 @@ type Post struct {
 	Content    string    `json:"content" gorm:"type:text;not null"`
 	AuthorID   uuid.UUID `json:"author_id" gorm:"column:author_id;type:uuid;not null;references:users(id)"`
 	CategoryID uuid.UUID `json:"category_id" gorm:"column:category_id;type:uuid;not null;references:categories(id)"`
-	CreatedAt  time.Time `json:"created_at" gorm:"type:timestamp with time zone;default:current_timestamp"`
+	CreatedAt  time.Time `json:"created_at" gorm:"column:created_at;type:timestamp with time zone;default:current_timestamp"`
 	UpdatedAt  time.Time `gorm:"type:timestamp with time zone;default:current_timestamp"`
 }
 
