@@ -24,6 +24,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
+
 	// Check route
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "API is running"})
