@@ -27,7 +27,7 @@ func NewCloudinaryService() (*CloudinaryService, error) {
 		log.Println("Warning: No .env file found. Ensure environment variables are set.")
 	}
 
-	// Get Cloudinary credentials from environment variables
+	// Get Cloudinary credentials from environment variables (this is set in Vercel environment variables)
 	cloudName := os.Getenv("CLOUD_NAME")
 	apiKey := os.Getenv("CLOUD_API_KEY")
 	apiSecret := os.Getenv("CLOUD_API_SECRET")
@@ -54,7 +54,7 @@ func (s *CloudinaryService) UploadImage(file *multipart.FileHeader, username str
 	}
 	defer src.Close()
 
-	// Sanitize username for use in public_id
+	// Sanitize username for use in public_id for access from the URL stored in Supabase
 	sanitizedUsername := strings.ReplaceAll(username, " ", "_")
 	publicID := fmt.Sprintf("avatars/%s_avatar", sanitizedUsername)
 
@@ -63,7 +63,7 @@ func (s *CloudinaryService) UploadImage(file *multipart.FileHeader, username str
 		PublicID:     publicID,
 		Folder:       "avatars",
 		ResourceType: "auto",
-		// Add transformations for image optimization
+		// Add transformations for image optimization (size, quality, format)
 		Transformation: "w_200,h_200,c_fill,q_auto,f_auto",
 	}
 
@@ -137,7 +137,7 @@ func UploadHandler(c *gin.Context) {
 	c.JSON(200, gin.H{"url": imageURL})
 }
 
-// DeleteImageHandler handles the HTTP request for image deletion
+// DeleteImageHandler handles the HTTP request for image deletion (same error handling as above)
 func DeleteImageHandler(c *gin.Context) {
 	username := c.Param("username")
 	if username == "" {
