@@ -2,19 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "main.go",
+      "src": "api/handler.go",
       "use": "@vercel/go"
     }
   ],
-  "functions": {
-    "main.go": {
-      "maxDuration": 90
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "main.go"
+      "dest": "/api/handler.go"
     }
   ]
 }
