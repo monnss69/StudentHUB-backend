@@ -68,8 +68,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	router.GET("/categories/:id", db.GetCategory)
 
 	// Image routes
-	router.POST("/api/upload", db.UploadHandler)
-	router.DELETE("/api/upload/:username", db.DeleteImageHandler)
+	router.POST("/api/cloudinary/upload", db.UploadHandler)
+	router.DELETE("/api/cloudinary/upload/:username", db.DeleteImageHandler)
 
 	// Serve the request
 	router.ServeHTTP(w, r)
