@@ -43,7 +43,7 @@ func main() {
 	// Auth routes
 	router.POST("/login", db.Login)
 	router.POST("/logout", db.Logout)
-	router.POST("/api/auth/sync", db.SyncToken)
+	router.POST("/auth/sync", db.SyncToken)
 
 	// Post routes
 	router.POST("/posts", auth.AuthMiddleware(), db.CreatePost)
