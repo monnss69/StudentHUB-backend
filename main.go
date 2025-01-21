@@ -68,8 +68,8 @@ func main() {
 	router.GET("/categories/:id", db.GetCategory)
 
 	// Image routes
-	router.POST("/api/cloudinary/upload", db.UploadHandler)
-	router.DELETE("/api/cloudinary/upload/:username", db.DeleteImageHandler)
+	router.POST("/cloudinary/upload", db.UploadHandler)
+	router.DELETE("/cloudinary/upload/:username", db.DeleteImageHandler)
 
 	http.ListenAndServe(":8080", router)
 }
