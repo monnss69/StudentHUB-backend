@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"backend/auth"
@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
+func Handler(w http.ResponseWriter, r *http.Request) {
 	// Initialize database on first request
 	if db.DB == nil {
 		db.Initialize()
@@ -71,5 +71,6 @@ func main() {
 	router.POST("/api/upload", db.UploadHandler)
 	router.DELETE("/api/upload/:username", db.DeleteImageHandler)
 
-	http.ListenAndServe(":8080", router)
+	// Serve the request
+	router.ServeHTTP(w, r)
 }
